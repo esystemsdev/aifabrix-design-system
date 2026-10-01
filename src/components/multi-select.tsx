@@ -154,7 +154,7 @@ export function MultiSelect({
                           ? canMutate
                             ? 'text-secondary-foreground'
                             : 'text-secondary-foreground/40'
-                          : 'text-muted-foreground hover:text-foreground',
+                          : 'text-secondary-foreground/70 hover:text-secondary-foreground',
                       )}
                     />
                   </span>
@@ -186,7 +186,7 @@ export function MultiSelect({
                       }`}
                     >
                       <svg
-                        className="h-4 w-4"
+                        className="h-4 w-4 text-primary-foreground"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

@@ -65,10 +65,15 @@ describe("MultiSelect legacy contract", () => {
     expect(remove.className).toBe(
       "ml-0.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2",
     );
-    expect(remove.querySelector("svg")?.getAttribute("class")).toContain("text-muted-foreground");
+    const removeIconClass = remove.querySelector("svg")?.getAttribute("class");
+    expect(removeIconClass).toContain("text-secondary-foreground/70");
+    expect(removeIconClass).not.toContain("text-muted-foreground");
 
     await click(trigger);
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(requiredText("Draft").querySelector("svg")?.getAttribute("class")).toContain(
+      "text-primary-foreground",
+    );
     await click(requiredText("Approved"));
 
     expect(onChange).toHaveBeenCalledOnce();
