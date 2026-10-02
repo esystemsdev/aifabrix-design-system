@@ -17,8 +17,9 @@ npm install --save-exact @aifabrix/ui
 Pin exact versions (`"@aifabrix/ui": "0.1.0"`, no `^`) while the package is `0.x`. Peer dependencies:
 `react` and `react-dom` 18.2 or later.
 
-Runtime dependencies (Radix UI, `cmdk`, `lucide-react`, …) are pinned to exact versions tested with the
-consuming applications. Upgrading them is a package release, verified in each application before publishing.
+Runtime dependencies (Radix UI, `cmdk`, `lucide-react`, …) use compatible version ranges, so an application
+that already depends on them installs one copy instead of two. The lower bound of each range is the version
+tested with the consuming applications.
 
 ## Entry points
 

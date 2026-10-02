@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+- Runtime dependencies use compatible version ranges instead of exact versions, so applications that already
+  depend on Radix UI, `lucide-react` or `tailwind-merge` install one copy.
+- The build emits one module per component behind the same entry points, so application bundlers can place each
+  component in the route chunk that uses it instead of the initial chunk. Public imports are unchanged; no
+  component changes.
+
 ## 0.1.1
 
 - MultiSelect: the trigger opens the option list with Enter, Space or ArrowDown. A disabled or read-only
