@@ -2,6 +2,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MultiSelect } from "../../src/components/multi-select";
+import type { FieldState } from "../../src/control-state";
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -94,9 +95,48 @@ describe("MultiSelect legacy contract", () => {
     expect(onChange).toHaveBeenCalledOnce();
     expect(onChange).toHaveBeenLastCalledWith([]);
   });
+
+  it.each(["Enter", " ", "ArrowDown"])("opens the option list with %j on the trigger", (key) => {
+    renderMultiSelect(root, vi.fn());
+    const trigger = getTrigger(container);
+
+    keyDown(trigger, key);
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(requiredText("Approved")).toBeTruthy();
+  });
+
+  it("does not open from a badge remove key", () => {
+    renderMultiSelect(root, vi.fn());
+
+    keyDown(getRemove(container, "Draft"), "Enter");
+
+    expect(getTrigger(container).getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("does not open from the keyboard when controlState is disabled", () => {
+    renderMultiSelect(root, vi.fn(), {
+      family: "field",
+      visibility: "visible",
+      interaction: "disabled",
+      activity: "idle",
+      validation: "valid",
+    });
+    const trigger = getTrigger(container);
+
+    keyDown(trigger, "Enter");
+    keyDown(trigger, "ArrowDown");
+
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(document.querySelector("[cmdk-item]")).toBeNull();
+  });
 });
 
-function renderMultiSelect(root: Root, onChange: (values: string[]) => void): void {
+function renderMultiSelect(
+  root: Root,
+  onChange: (values: string[]) => void,
+  controlState?: FieldState,
+): void {
   act(() =>
     root.render(
       <MultiSelect
@@ -104,6 +144,7 @@ function renderMultiSelect(root: Root, onChange: (values: string[]) => void): vo
         selected={["draft"]}
         onChange={onChange}
         placeholder="Select statuses"
+        controlState={controlState}
       />,
     ),
   );

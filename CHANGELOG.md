@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- MultiSelect: the trigger opens the option list with Enter, Space or ArrowDown. A disabled or read-only
+  `controlState` still blocks opening.
+- ConfirmationDialog: closing a controlled dialog returns focus to the element that was focused when it opened.
+
 ## 0.1.0
 
 - Initial release extracted from AI Fabrix Dataplane `app-ui`: Alert, AlertDialog, Badge, Button, Card, Checkbox,

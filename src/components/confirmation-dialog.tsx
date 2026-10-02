@@ -62,6 +62,24 @@ export function ConfirmationDialog({
     stateReasonId: cancelStateReasonId,
   });
 
+  const returnFocusRef = React.useRef<HTMLElement | null>(null);
+
+  // Controlled dialogs have no Radix trigger to return focus to.
+  React.useLayoutEffect(() => {
+    if (open && document.activeElement instanceof HTMLElement) {
+      returnFocusRef.current = document.activeElement;
+    }
+  }, [open]);
+
+  const handleCloseAutoFocus = (event: Event) => {
+    const target = returnFocusRef.current;
+    returnFocusRef.current = null;
+    if (target?.isConnected) {
+      event.preventDefault();
+      target.focus();
+    }
+  };
+
   const handleConfirm = (event: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent Radix from auto-closing before async onConfirm finishes.
     event.preventDefault();
@@ -77,7 +95,11 @@ export function ConfirmationDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className={className} overlayClassName={overlayClassName}>
+      <AlertDialogContent
+        className={className}
+        overlayClassName={overlayClassName}
+        onCloseAutoFocus={handleCloseAutoFocus}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

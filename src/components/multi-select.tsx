@@ -79,6 +79,14 @@ export function MultiSelect({
     setOpen(next);
   };
 
+  const handleTriggerKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget || popoverOpen) return;
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      handleOpenChange(true);
+    }
+  };
+
   if (presentation.hidden) return null;
 
   return (
@@ -104,6 +112,7 @@ export function MultiSelect({
                 }
               : undefined
           }
+          onKeyDown={handleTriggerKeyDown}
           className={cn(
             buttonVariants({ variant: 'outline', size: 'default' }),
             'h-auto min-h-10 w-full justify-start py-2 font-normal',
