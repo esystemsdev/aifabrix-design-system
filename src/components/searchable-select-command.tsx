@@ -8,10 +8,14 @@ import {
 } from './command';
 import { searchableSelectListClass } from './searchable-select-layout';
 import { SearchableSelectOptionItem } from './searchable-select-option-item';
-import type { SearchableSelectOption, SearchableSelectSize } from './searchable-select-types';
+import type {
+  SearchableSelectGroup,
+  SearchableSelectOption,
+  SearchableSelectSize,
+} from './searchable-select-types';
 
 export type SearchableSelectCommandProps = {
-  options: SearchableSelectOption[];
+  groups: SearchableSelectGroup[];
   value: string;
   onValueChange: (value: string) => void;
   emptyText: string;
@@ -43,8 +47,30 @@ function onOptionChosen(
   setOpen(false);
 }
 
+function SearchableSelectGroupItems({
+  group,
+  ...props
+}: SearchableSelectCommandProps & { group: SearchableSelectGroup }) {
+  return (
+    <CommandGroup heading={group.label || undefined}>
+      {group.options.map((option) => (
+        <SearchableSelectOptionItem
+          key={option.value || '__empty__'}
+          option={option}
+          selected={props.value === option.value}
+          size={props.size}
+          onSelect={() =>
+            onOptionChosen(option, props.value, props.allowClear, props.onValueChange, props.setOpen)
+          }
+        />
+      ))}
+    </CommandGroup>
+  );
+}
+
 export function SearchableSelectCommand(props: SearchableSelectCommandProps) {
   const remote = props.onSearchChange != null;
+  const empty = props.groups.every((group) => group.options.length === 0);
   return (
     <Command shouldFilter={!remote}>
       {props.showSearch ? (
@@ -56,7 +82,7 @@ export function SearchableSelectCommand(props: SearchableSelectCommandProps) {
         />
       ) : null}
       <CommandList className={searchableSelectListClass()}>
-        {props.loading && props.options.length === 0 ? (
+        {props.loading && empty ? (
           <div
             className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground"
             data-testid="searchable-select-loading"
@@ -66,25 +92,9 @@ export function SearchableSelectCommand(props: SearchableSelectCommandProps) {
           </div>
         ) : null}
         <CommandEmpty className="py-3 text-sm">{props.emptyText}</CommandEmpty>
-        <CommandGroup>
-          {props.options.map((option) => (
-            <SearchableSelectOptionItem
-              key={option.value || '__empty__'}
-              option={option}
-              selected={props.value === option.value}
-              size={props.size}
-              onSelect={() =>
-                onOptionChosen(
-                  option,
-                  props.value,
-                  props.allowClear,
-                  props.onValueChange,
-                  props.setOpen,
-                )
-              }
-            />
-          ))}
-        </CommandGroup>
+        {props.groups.map((group, index) => (
+          <SearchableSelectGroupItems key={group.label || `__group_${index}`} group={group} {...props} />
+        ))}
       </CommandList>
     </Command>
   );

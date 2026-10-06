@@ -1,5 +1,9 @@
 import { cn } from '../utils/cn';
-import type { SearchableSelectSize } from './searchable-select-types';
+import type {
+  SearchableSelectGroup,
+  SearchableSelectOption,
+  SearchableSelectSize,
+} from './searchable-select-types';
 
 /** Show in-popover search when option count exceeds this, unless `searchable` overrides. */
 export const SEARCHABLE_SELECT_SEARCH_THRESHOLD = 8;
@@ -37,6 +41,23 @@ export function shouldShowSearchableSelectSearch(
     return false;
   }
   return optionCount > SEARCHABLE_SELECT_SEARCH_THRESHOLD;
+}
+
+/** `groups` wins over `options` when it is non-empty; otherwise `options` form one unlabeled group. */
+export function resolveSearchableSelectGroups(
+  options: SearchableSelectOption[] | undefined,
+  groups: SearchableSelectGroup[] | undefined,
+): SearchableSelectGroup[] {
+  if (groups && groups.length > 0) {
+    return groups;
+  }
+  return [{ label: '', options: options ?? [] }];
+}
+
+export function flattenSearchableSelectGroups(
+  groups: SearchableSelectGroup[],
+): SearchableSelectOption[] {
+  return groups.flatMap((group) => group.options);
 }
 
 export function commandItemFilterValue(option: {

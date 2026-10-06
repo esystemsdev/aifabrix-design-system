@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+- SearchableSelect: optional `groups` (options under headings, searched across all groups), option `icon`
+  (shown in the list and the trigger) and `renderValue` (custom trigger content). `options` is optional when
+  `groups` is set. Existing `options`-only usage is unchanged.
+- CardTitle: `asChild` renders the child element, for example another heading level. The default stays `<h4>`.
+- Alert: AlertTitle and AlertDescription wrap long unbroken text (URLs, IDs, error messages) instead of
+  widening the alert.
+- Behavior tests for Alert, AlertDialog, Checkbox, Label, Popover, Progress, RadioGroup, Separator, Sheet,
+  Skeleton, Switch, Textarea and Tooltip.
+
 ## 0.1.2
 
 - Runtime dependencies use compatible version ranges instead of exact versions, so applications that already

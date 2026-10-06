@@ -1,6 +1,6 @@
 {
   "name": "@aifabrix/ui",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Shared AI Fabrix React UI primitives, status presentation and control-state (Tailwind CSS 4, Radix UI).",
   "license": "MIT",
   "author": "AI Fabrix Team",

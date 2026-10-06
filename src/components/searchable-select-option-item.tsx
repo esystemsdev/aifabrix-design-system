@@ -33,6 +33,11 @@ export function SearchableSelectOptionItem({
         className={cn('h-4 w-4 shrink-0', selected ? 'opacity-100' : 'opacity-0')}
         aria-hidden
       />
+      {option.icon ? (
+        <span className="flex shrink-0 items-center" aria-hidden data-testid="searchable-select-option-icon">
+          {option.icon}
+        </span>
+      ) : null}
       <span className="min-w-0 flex-1">
         <span className="block truncate" title={option.label}>
           {option.label}
