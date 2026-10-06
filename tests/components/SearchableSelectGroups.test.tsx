@@ -169,6 +169,17 @@ describe('SearchableSelect groups, icons and renderValue', () => {
     expect(trigger(container).querySelector('[data-testid="icon-source"]')).toBeTruthy();
   });
 
+  it('highlights the selected option when the list opens', async () => {
+    await act(async () => {
+      root.render(<SearchableSelect groups={GROUPS} value="source:hubspot" onValueChange={() => undefined} />);
+    });
+    await openSelect(container);
+    const highlighted = Array.from(document.querySelectorAll('[cmdk-item][data-selected="true"]'));
+    expect(highlighted.map((item) => item.getAttribute('data-testid'))).toEqual([
+      'searchable-select-option-source:hubspot',
+    ]);
+  });
+
   it('renderValue controls the trigger content for a selected option', async () => {
     await act(async () => {
       root.render(

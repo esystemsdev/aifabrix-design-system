@@ -6,7 +6,11 @@ import {
   CommandInput,
   CommandList,
 } from './command';
-import { searchableSelectListClass } from './searchable-select-layout';
+import {
+  commandItemFilterValue,
+  flattenSearchableSelectGroups,
+  searchableSelectListClass,
+} from './searchable-select-layout';
 import { SearchableSelectOptionItem } from './searchable-select-option-item';
 import type {
   SearchableSelectGroup,
@@ -71,8 +75,14 @@ function SearchableSelectGroupItems({
 export function SearchableSelectCommand(props: SearchableSelectCommandProps) {
   const remote = props.onSearchChange != null;
   const empty = props.groups.every((group) => group.options.length === 0);
+  const selected = flattenSearchableSelectGroups(props.groups).find(
+    (option) => option.value === props.value,
+  );
   return (
-    <Command shouldFilter={!remote}>
+    <Command
+      shouldFilter={!remote}
+      defaultValue={selected ? commandItemFilterValue(selected) : undefined}
+    >
       {props.showSearch ? (
         <CommandInput
           placeholder={props.searchPlaceholder}

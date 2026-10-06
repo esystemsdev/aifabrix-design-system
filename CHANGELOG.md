@@ -5,6 +5,8 @@
 - SearchableSelect: optional `groups` (options under headings, searched across all groups), option `icon`
   (shown in the list and the trigger) and `renderValue` (custom trigger content). `options` is optional when
   `groups` is set. Existing `options`-only usage is unchanged.
+- SearchableSelect: opening the list highlights the selected option instead of the first one, so keyboard
+  navigation starts from the current value.
 - CardTitle: `asChild` renders the child element, for example another heading level. The default stays `<h4>`.
 - Alert: AlertTitle and AlertDescription wrap long unbroken text (URLs, IDs, error messages) instead of
   widening the alert.
