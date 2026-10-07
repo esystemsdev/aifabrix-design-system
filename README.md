@@ -55,6 +55,31 @@ Product-specific logic stays in the application: map domain statuses to `StatusP
 rendering, and wrap `ErrorState` to pass `formatErrorMessage` and `showErrorDetails` (the package reads no
 bundler globals such as `import.meta.env`).
 
+## Component options
+
+`SearchableSelect` takes either a flat `options` list or `groups` with headings; search matches across all
+groups. An option may carry an `icon`, and `renderValue` replaces the trigger content (return `null` to keep
+the default icon and label, or the placeholder):
+
+```tsx
+<SearchableSelect
+  value={value}
+  onValueChange={setValue}
+  groups={[
+    { label: 'Applications', options: [{ value: 'app:crm', label: 'CRM', icon: <Settings /> }] },
+    { label: 'Integrations', options: [{ value: 'source:hubspot', label: 'HubSpot' }] },
+  ]}
+/>
+```
+
+`CardTitle` renders an `<h4>`. Pass `asChild` to choose the heading level that fits the page outline:
+
+```tsx
+<CardTitle asChild>
+  <h2>Applications</h2>
+</CardTitle>
+```
+
 ## Development
 
 ```bash

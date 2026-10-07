@@ -18,26 +18,40 @@ import { cn } from '../utils/cn';
 import { Button } from './button';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import {
+  flattenSearchableSelectGroups,
+  resolveSearchableSelectGroups,
   searchableSelectPopoverClass,
   shouldShowSearchableSelectSearch,
 } from './searchable-select-layout';
 import { SearchableSelectCommand } from './searchable-select-command';
-import type { SearchableSelectOption, SearchableSelectSize } from './searchable-select-types';
+import type {
+  SearchableSelectGroup,
+  SearchableSelectOption,
+  SearchableSelectSize,
+} from './searchable-select-types';
 
-export type { SearchableSelectOption, SearchableSelectSize };
+export type { SearchableSelectGroup, SearchableSelectOption, SearchableSelectSize };
 export {
   SEARCHABLE_SELECT_SEARCH_THRESHOLD,
   shouldShowSearchableSelectSearch,
 } from './searchable-select-layout';
 
 export type SearchableSelectProps = {
-  options: SearchableSelectOption[];
+  /** Flat option list. Ignored when `groups` is non-empty. */
+  options?: SearchableSelectOption[];
+  /** Options listed under group headings; search matches across all groups. */
+  groups?: SearchableSelectGroup[];
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
+  /**
+   * Custom trigger content for the selected option (`null` when nothing is selected).
+   * Return `null` or `undefined` to fall back to the default icon, label or placeholder.
+   */
+  renderValue?: (option: SearchableSelectOption | null) => React.ReactNode;
   /** Shown when the filter yields no matches. */
   emptyText?: string;
-  /** Shown when `options` is empty and not loading. */
+  /** Shown when there are no options and not loading. */
   noOptionsText?: string;
   searchPlaceholder?: string;
   className?: string;
@@ -63,7 +77,8 @@ export type SearchableSelectProps = {
 };
 
 type BodyProps = {
-  options: SearchableSelectOption[];
+  groups: SearchableSelectGroup[];
+  optionCount: number;
   value: string;
   onValueChange: (value: string) => void;
   emptyText: string;
@@ -101,59 +116,76 @@ function EmptyOptionsBody({ noOptionsText }: { noOptionsText: string }) {
   );
 }
 
-function SearchableSelectBody(props: BodyProps) {
+function SearchableSelectBody({ optionCount, noOptionsText, ...props }: BodyProps) {
   const remote = props.onSearchChange != null;
-  if (!remote && props.loading && props.options.length === 0) {
+  if (!remote && props.loading && optionCount === 0) {
     return <LoadingBody loadingText={props.loadingText} />;
   }
-  if (!remote && !props.loading && props.options.length === 0) {
-    return <EmptyOptionsBody noOptionsText={props.noOptionsText} />;
+  if (!remote && !props.loading && optionCount === 0) {
+    return <EmptyOptionsBody noOptionsText={noOptionsText} />;
   }
   return <SearchableSelectCommand {...props} />;
 }
 
-export function SearchableSelect({
-  options,
-  value,
-  onValueChange,
-  placeholder = 'Select…',
-  emptyText = 'No results found',
-  noOptionsText = 'No options available',
-  searchPlaceholder = 'Search…',
-  className,
-  contentClassName,
-  ariaLabel,
-  describedBy,
-  ariaInvalid,
-  disabled,
-  allowClear = true,
-  size = 'md',
-  searchable,
-  loading = false,
-  loadingText = 'Loading…',
-  controlState,
-  stateReasonId,
-  onSearchChange,
-}: SearchableSelectProps) {
+function DefaultTriggerValue({
+  option,
+  placeholder,
+}: {
+  option: SearchableSelectOption | undefined;
+  placeholder: string;
+}) {
+  if (!option) {
+    return <span className="truncate">{placeholder}</span>;
+  }
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      {option.icon ? (
+        <span className="flex shrink-0 items-center" aria-hidden>
+          {option.icon}
+        </span>
+      ) : null}
+      <span className="truncate">{option.label}</span>
+    </span>
+  );
+}
+
+function TriggerValue({
+  option,
+  placeholder,
+  renderValue,
+}: {
+  option: SearchableSelectOption | undefined;
+  placeholder: string;
+  renderValue?: SearchableSelectProps['renderValue'];
+}) {
+  const custom = renderValue?.(option ?? null);
+  if (custom !== null && custom !== undefined) {
+    return <span className="min-w-0 truncate">{custom}</span>;
+  }
+  return <DefaultTriggerValue option={option} placeholder={placeholder} />;
+}
+
+type OpenState = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  sessionKey: number;
+  popoverOpen: boolean;
+  expanded: boolean;
+  handleOpenChange: (next: boolean) => void;
+};
+
+function useSearchableSelectOpen(
+  presentation: ReturnType<typeof resolveFieldPresentation>,
+  controlState: FieldState | undefined,
+  disabled: boolean | undefined,
+  onSearchChange: SearchableSelectProps['onSearchChange'],
+): OpenState {
   const [open, setOpen] = React.useState(false);
   const [sessionKey, setSessionKey] = React.useState(0);
-  const selectedOption = options.find((option) => option.value === value);
-  const showSearch = shouldShowSearchableSelectSearch(options.length, searchable);
-  const listboxId = React.useId();
-  const presentation = resolveFieldPresentation(controlState);
   const nativeDisabled = disabled ?? false;
   const effectiveDisabled = nativeDisabled || presentation.disabled;
   const canOpen = !presentation.hidden && !effectiveDisabled && !presentation.readOnly;
   const popoverOpen = controlState ? open && canOpen : open && !nativeDisabled;
-  const expanded = controlState ? popoverOpen : open;
-  const resolvedDescribedBy =
-    [describedBy, stateReasonId].filter(Boolean).join(' ') || undefined;
-
-  reportControlStateConflict(
-    fieldStateConflict(controlState, { disabled }),
-    presentation.reason ?? presentation.validationReason,
-    stateReasonId,
-  );
 
   React.useEffect(() => {
     if (controlState && !canOpen && open) {
@@ -173,58 +205,125 @@ export function SearchableSelect({
     }
   };
 
+  return {
+    open,
+    setOpen,
+    sessionKey,
+    popoverOpen,
+    expanded: controlState ? popoverOpen : open,
+    handleOpenChange,
+  };
+}
+
+type TriggerProps = {
+  props: SearchableSelectProps;
+  presentation: ReturnType<typeof resolveFieldPresentation>;
+  state: OpenState;
+  listboxId: string;
+  selectedOption: SearchableSelectOption | undefined;
+  placeholder: string;
+};
+
+/** Returns the trigger element itself so `PopoverTrigger asChild` can merge its ref and handlers. */
+function renderSearchableSelectTrigger({
+  props,
+  presentation,
+  state,
+  listboxId,
+  selectedOption,
+  placeholder,
+}: TriggerProps) {
+  const nativeDisabled = props.disabled ?? false;
+  const effectiveDisabled = nativeDisabled || presentation.disabled;
+  const describedBy = [props.describedBy, props.stateReasonId].filter(Boolean).join(' ') || undefined;
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      role="combobox"
+      size={props.size === 'sm' ? 'sm' : 'default'}
+      aria-label={props.ariaLabel || placeholder}
+      aria-expanded={state.expanded}
+      aria-controls={listboxId}
+      aria-haspopup="listbox"
+      aria-describedby={describedBy}
+      aria-invalid={presentation.invalid || props.ariaInvalid || undefined}
+      aria-readonly={presentation.readOnly || undefined}
+      aria-busy={presentation.busy || undefined}
+      disabled={props.controlState ? effectiveDisabled : nativeDisabled}
+      data-control-state={props.controlState ? presentation.dataState : undefined}
+      data-testid="searchable-select-trigger"
+      className={cn('min-w-0 justify-between gap-2 font-normal', props.className)}
+    >
+      <TriggerValue option={selectedOption} placeholder={placeholder} renderValue={props.renderValue} />
+      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+    </Button>
+  );
+}
+
+function buildBodyProps(
+  props: SearchableSelectProps,
+  groups: SearchableSelectGroup[],
+  optionCount: number,
+  setOpen: (open: boolean) => void,
+): BodyProps {
+  return {
+    groups,
+    optionCount,
+    value: props.value,
+    onValueChange: props.onValueChange,
+    emptyText: props.emptyText ?? 'No results found',
+    noOptionsText: props.noOptionsText ?? 'No options available',
+    searchPlaceholder: props.searchPlaceholder ?? 'Search…',
+    allowClear: props.allowClear ?? true,
+    size: props.size ?? 'md',
+    loading: props.loading ?? false,
+    loadingText: props.loadingText ?? 'Loading…',
+    showSearch: shouldShowSearchableSelectSearch(optionCount, props.searchable),
+    setOpen,
+    onSearchChange: props.onSearchChange,
+  };
+}
+
+export function SearchableSelect(props: SearchableSelectProps) {
+  const { value, controlState, stateReasonId, disabled, size = 'md' } = props;
+  const placeholder = props.placeholder ?? 'Select…';
+  const groups = resolveSearchableSelectGroups(props.options, props.groups);
+  const allOptions = flattenSearchableSelectGroups(groups);
+  const selectedOption = allOptions.find((option) => option.value === value);
+  const listboxId = React.useId();
+  const presentation = resolveFieldPresentation(controlState);
+  const state = useSearchableSelectOpen(presentation, controlState, disabled, props.onSearchChange);
+
+  reportControlStateConflict(
+    fieldStateConflict(controlState, { disabled }),
+    presentation.reason ?? presentation.validationReason,
+    stateReasonId,
+  );
+
   if (presentation.hidden) return null;
 
   return (
-    <Popover open={popoverOpen} onOpenChange={handleOpenChange}>
+    <Popover open={state.popoverOpen} onOpenChange={state.handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          size={size === 'sm' ? 'sm' : 'default'}
-          aria-label={ariaLabel || placeholder}
-          aria-expanded={expanded}
-          aria-controls={listboxId}
-          aria-haspopup="listbox"
-          aria-describedby={resolvedDescribedBy}
-          aria-invalid={presentation.invalid || ariaInvalid || undefined}
-          aria-readonly={presentation.readOnly || undefined}
-          aria-busy={presentation.busy || undefined}
-          disabled={controlState ? effectiveDisabled : nativeDisabled}
-          data-control-state={controlState ? presentation.dataState : undefined}
-          data-testid="searchable-select-trigger"
-          className={cn('min-w-0 justify-between gap-2 font-normal', className)}
-        >
-          <span className="truncate">
-            {selectedOption ? selectedOption.label : placeholder}
-          </span>
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-        </Button>
+        {renderSearchableSelectTrigger({
+          props,
+          presentation,
+          state,
+          listboxId,
+          selectedOption,
+          placeholder,
+        })}
       </PopoverTrigger>
       <PopoverContent
         id={listboxId}
         align="start"
         collisionPadding={8}
-        className={cn(searchableSelectPopoverClass(size), contentClassName)}
+        className={cn(searchableSelectPopoverClass(size), props.contentClassName)}
         data-testid="searchable-select-content"
       >
-        <div key={sessionKey}>
-          <SearchableSelectBody
-            options={options}
-            value={value}
-            onValueChange={onValueChange}
-            emptyText={emptyText}
-            noOptionsText={noOptionsText}
-            searchPlaceholder={searchPlaceholder}
-            allowClear={allowClear}
-            size={size}
-            loading={loading}
-            loadingText={loadingText}
-            showSearch={showSearch}
-            setOpen={setOpen}
-            onSearchChange={onSearchChange}
-          />
+        <div key={state.sessionKey}>
+          <SearchableSelectBody {...buildBodyProps(props, groups, allOptions.length, state.setOpen)} />
         </div>
       </PopoverContent>
     </Popover>

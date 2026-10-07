@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0
+
+- SearchableSelect: optional `groups` (options under headings, searched across all groups), option `icon`
+  (shown in the list and the trigger) and `renderValue` (custom trigger content). `options` is optional when
+  `groups` is set. Existing `options`-only usage is unchanged.
+- SearchableSelect: opening the list highlights the selected option instead of the first one, so keyboard
+  navigation starts from the current value.
+- CardTitle: `asChild` renders the child element, for example another heading level. The default stays `<h4>`.
+- Alert: AlertTitle and AlertDescription wrap long unbroken text (URLs, IDs, error messages) instead of
+  widening the alert.
+- Behavior tests for Alert, AlertDialog, Checkbox, Label, Popover, Progress, RadioGroup, Separator, Sheet,
+  Skeleton, Switch, Textarea and Tooltip.
+- Checkbox, Switch, RadioGroup, RadioGroupItem, Label, Textarea, Skeleton, Progress, Separator,
+  TooltipTrigger and TooltipContent forward a parent ref to the underlying element on React 18. Callers
+  that omit the ref are unchanged.
+
 ## 0.1.2
 
 - Runtime dependencies use compatible version ranges instead of exact versions, so applications that already

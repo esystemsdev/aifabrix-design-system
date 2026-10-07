@@ -19,20 +19,24 @@ export type CheckboxProps = React.ComponentProps<typeof CheckboxPrimitive.Root> 
   stateReasonId?: string;
 };
 
-function Checkbox({
-  className,
-  controlState,
-  stateReasonId,
-  disabled,
-  "aria-describedby": ariaDescribedBy,
-  "aria-disabled": ariaDisabled,
-  "aria-invalid": ariaInvalid,
-  "aria-busy": ariaBusy,
-  "aria-readonly": ariaReadOnly,
-  onClickCapture,
-  onKeyDownCapture,
-  ...props
-}: CheckboxProps) {
+const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root>, CheckboxProps>(
+  function Checkbox(
+    {
+      className,
+      controlState,
+      stateReasonId,
+      disabled,
+      "aria-describedby": ariaDescribedBy,
+      "aria-disabled": ariaDisabled,
+      "aria-invalid": ariaInvalid,
+      "aria-busy": ariaBusy,
+      "aria-readonly": ariaReadOnly,
+      onClickCapture,
+      onKeyDownCapture,
+      ...props
+    },
+    ref,
+  ) {
   const presentation = resolveDiscreteFieldPresentation(controlState, disabled);
   reportControlStateConflict(
     fieldStateConflict(controlState, { disabled }),
@@ -44,6 +48,7 @@ function Checkbox({
 
   return (
     <CheckboxPrimitive.Root
+      ref={ref}
       data-slot="checkbox"
       data-control-state={controlState ? presentation.dataState : undefined}
       className={cn(
@@ -84,6 +89,8 @@ function Checkbox({
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );
-}
+  },
+);
+Checkbox.displayName = "Checkbox";
 
 export { Checkbox };

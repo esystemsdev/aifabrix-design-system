@@ -18,20 +18,24 @@ export type SwitchProps = React.ComponentProps<typeof SwitchPrimitive.Root> & {
   stateReasonId?: string;
 };
 
-function Switch({
-  className,
-  controlState,
-  stateReasonId,
-  disabled,
-  "aria-describedby": ariaDescribedBy,
-  "aria-disabled": ariaDisabled,
-  "aria-invalid": ariaInvalid,
-  "aria-busy": ariaBusy,
-  "aria-readonly": ariaReadOnly,
-  onClickCapture,
-  onKeyDownCapture,
-  ...props
-}: SwitchProps) {
+const Switch = React.forwardRef<React.ElementRef<typeof SwitchPrimitive.Root>, SwitchProps>(
+  function Switch(
+    {
+      className,
+      controlState,
+      stateReasonId,
+      disabled,
+      "aria-describedby": ariaDescribedBy,
+      "aria-disabled": ariaDisabled,
+      "aria-invalid": ariaInvalid,
+      "aria-busy": ariaBusy,
+      "aria-readonly": ariaReadOnly,
+      onClickCapture,
+      onKeyDownCapture,
+      ...props
+    },
+    ref,
+  ) {
   const presentation = resolveDiscreteFieldPresentation(controlState, disabled);
   reportControlStateConflict(
     fieldStateConflict(controlState, { disabled }),
@@ -43,6 +47,7 @@ function Switch({
 
   return (
     <SwitchPrimitive.Root
+      ref={ref}
       data-slot="switch"
       data-control-state={controlState ? presentation.dataState : undefined}
       className={cn(
@@ -83,6 +88,8 @@ function Switch({
       />
     </SwitchPrimitive.Root>
   );
-}
+  },
+);
+Switch.displayName = "Switch";
 
 export { Switch };

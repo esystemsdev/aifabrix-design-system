@@ -13,17 +13,20 @@ export type TextareaProps = React.ComponentProps<"textarea"> & {
   stateReasonId?: string;
 };
 
-function Textarea({
-  className,
-  controlState,
-  stateReasonId,
-  disabled,
-  readOnly,
-  "aria-describedby": ariaDescribedBy,
-  "aria-invalid": ariaInvalid,
-  "aria-busy": ariaBusy,
-  ...props
-}: TextareaProps) {
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  {
+    className,
+    controlState,
+    stateReasonId,
+    disabled,
+    readOnly,
+    "aria-describedby": ariaDescribedBy,
+    "aria-invalid": ariaInvalid,
+    "aria-busy": ariaBusy,
+    ...props
+  },
+  ref,
+) {
   const presentation = resolveFieldPresentation(controlState);
   reportControlStateConflict(
     fieldStateConflict(controlState, { disabled, readOnly }),
@@ -35,6 +38,7 @@ function Textarea({
 
   return (
     <textarea
+      ref={ref}
       data-slot="textarea"
       data-control-state={controlState ? presentation.dataState : undefined}
       className={cn(
@@ -49,6 +53,7 @@ function Textarea({
       {...props}
     />
   );
-}
+});
+Textarea.displayName = "Textarea";
 
 export { Textarea };
