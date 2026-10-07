@@ -19,20 +19,26 @@ export type RadioGroupProps = React.ComponentProps<typeof RadioGroupPrimitive.Ro
   stateReasonId?: string;
 };
 
-function RadioGroup({
-  className,
-  controlState,
-  stateReasonId,
-  disabled,
-  "aria-describedby": ariaDescribedBy,
-  "aria-disabled": ariaDisabled,
-  "aria-invalid": ariaInvalid,
-  "aria-busy": ariaBusy,
-  "aria-readonly": ariaReadOnly,
-  onClickCapture,
-  onKeyDownCapture,
-  ...props
-}: RadioGroupProps) {
+const RadioGroup = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Root>,
+  RadioGroupProps
+>(function RadioGroup(
+  {
+    className,
+    controlState,
+    stateReasonId,
+    disabled,
+    "aria-describedby": ariaDescribedBy,
+    "aria-disabled": ariaDisabled,
+    "aria-invalid": ariaInvalid,
+    "aria-busy": ariaBusy,
+    "aria-readonly": ariaReadOnly,
+    onClickCapture,
+    onKeyDownCapture,
+    ...props
+  },
+  ref,
+) {
   const presentation = resolveDiscreteFieldPresentation(controlState, disabled);
   reportControlStateConflict(
     fieldStateConflict(controlState, { disabled }),
@@ -44,6 +50,7 @@ function RadioGroup({
 
   return (
     <RadioGroupPrimitive.Root
+      ref={ref}
       data-slot="radio-group"
       data-control-state={controlState ? presentation.dataState : undefined}
       className={cn("grid gap-3", className)}
@@ -74,14 +81,16 @@ function RadioGroup({
       {...props}
     />
   );
-}
+});
+RadioGroup.displayName = "RadioGroup";
 
-function RadioGroupItem({
-  className,
-  ...props
-}: React.ComponentProps<typeof RadioGroupPrimitive.Item>) {
+const RadioGroupItem = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Item>,
+  React.ComponentProps<typeof RadioGroupPrimitive.Item>
+>(function RadioGroupItem({ className, ...props }, ref) {
   return (
     <RadioGroupPrimitive.Item
+      ref={ref}
       data-slot="radio-group-item"
       className={cn(
         "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
@@ -97,6 +106,7 @@ function RadioGroupItem({
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );
-}
+});
+RadioGroupItem.displayName = "RadioGroupItem";
 
 export { RadioGroup, RadioGroupItem };

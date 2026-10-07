@@ -131,4 +131,23 @@ describe('content wrappers', () => {
     expect(label.className).toContain('extra-label');
     expect((container.querySelector('#tenant-name') as HTMLInputElement).labels?.[0]).toBe(label);
   });
+
+  it('forwards refs to the rendered element', async () => {
+    const labelRef = React.createRef<HTMLLabelElement>();
+    const skeletonRef = React.createRef<HTMLDivElement>();
+    const progressRef = React.createRef<HTMLDivElement>();
+    const separatorRef = React.createRef<HTMLDivElement>();
+    await render(
+      <>
+        <Label ref={labelRef}>Tenant name</Label>
+        <Skeleton ref={skeletonRef} />
+        <Progress ref={progressRef} value={40} />
+        <Separator ref={separatorRef} />
+      </>,
+    );
+    expect(labelRef.current).toBe(slot('label'));
+    expect(skeletonRef.current).toBe(slot('skeleton'));
+    expect(progressRef.current).toBe(slot('progress'));
+    expect(separatorRef.current).toBe(slot('separator-root'));
+  });
 });

@@ -12,6 +12,9 @@
   widening the alert.
 - Behavior tests for Alert, AlertDialog, Checkbox, Label, Popover, Progress, RadioGroup, Separator, Sheet,
   Skeleton, Switch, Textarea and Tooltip.
+- Checkbox, Switch, RadioGroup, RadioGroupItem, Label, Textarea, Skeleton, Progress, Separator,
+  TooltipTrigger and TooltipContent forward a parent ref to the underlying element on React 18. Callers
+  that omit the ref are unchanged.
 
 ## 0.1.2
 

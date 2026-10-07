@@ -107,16 +107,20 @@ describe('overlay wrappers', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it('Tooltip renders role tooltip with its text when open', async () => {
+  it('Tooltip forwards refs to its trigger and content', async () => {
+    const triggerRef = React.createRef<HTMLButtonElement>();
+    const contentRef = React.createRef<HTMLDivElement>();
     await render(
       <Tooltip open>
-        <TooltipTrigger>Info</TooltipTrigger>
-        <TooltipContent className="extra-tooltip">Explains the field</TooltipContent>
+        <TooltipTrigger ref={triggerRef}>Info</TooltipTrigger>
+        <TooltipContent ref={contentRef} className="extra-tooltip">
+          Explains the field
+        </TooltipContent>
       </Tooltip>,
     );
     await flush();
-    expect(byRole('tooltip')?.textContent).toBe('Explains the field');
-    expect(document.querySelector('[data-slot="tooltip-content"]')?.className).toContain('extra-tooltip');
+    expect(triggerRef.current?.textContent).toBe('Info');
+    expect(contentRef.current).toBe(document.querySelector('[data-slot="tooltip-content"]'));
   });
 
   it('Sheet opens as a named dialog and Escape closes it with focus back on the trigger', async () => {

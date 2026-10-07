@@ -124,4 +124,27 @@ describe('form wrappers', () => {
     await render(<Textarea aria-label="Notes" disabled />);
     expect((container.querySelector('textarea') as HTMLTextAreaElement).disabled).toBe(true);
   });
+
+  it('forwards refs to the control element', async () => {
+    const checkboxRef = React.createRef<HTMLButtonElement>();
+    const switchRef = React.createRef<HTMLButtonElement>();
+    const groupRef = React.createRef<HTMLDivElement>();
+    const itemRef = React.createRef<HTMLButtonElement>();
+    const textareaRef = React.createRef<HTMLTextAreaElement>();
+    await render(
+      <>
+        <Checkbox ref={checkboxRef} aria-label="Accept terms" />
+        <Switch ref={switchRef} aria-label="Live updates" />
+        <RadioGroup ref={groupRef} aria-label="Mode">
+          <RadioGroupItem ref={itemRef} value="saas" aria-label="SaaS" />
+        </RadioGroup>
+        <Textarea ref={textareaRef} aria-label="Notes" />
+      </>,
+    );
+    expect(checkboxRef.current).toBe(byRole('checkbox'));
+    expect(switchRef.current).toBe(byRole('switch'));
+    expect(groupRef.current).toBe(byRole('radiogroup'));
+    expect(itemRef.current).toBe(byRole('radio'));
+    expect(textareaRef.current).toBe(container.querySelector('textarea'));
+  });
 });
