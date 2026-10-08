@@ -95,10 +95,13 @@ npm run check   # lint, typecheck, build, tests, package contract, packed export
 
 ## Release
 
-1. Update `version` in `package.json` and `CHANGELOG.md`.
-2. Create a GitHub release `vX.Y.Z`; `.github/workflows/publish.yml` publishes to npm.
+The release commands match `@aifabrix/miso-client`. Details are in `.cursor/process/deployment.md`.
 
-Published versions are never republished; fix forward with a new patch version.
+1. `/repair-release` updates `package.json` and `CHANGELOG.md` on the feature branch.
+2. `/push-release-branch` pushes `release/aifabrix-ui-X.Y.0`, runs CodeQL, and opens a pull request to `main`.
+3. After that pull request is merged, `/push-github` creates the `vX.Y.Z` tag and the GitHub Release. `.github/workflows/publish.yml` then publishes to npm.
+
+Published versions are never republished. A fix ships as a new version through the same three commands.
 
 ## License
 
